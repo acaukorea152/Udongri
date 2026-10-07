@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}리뷰 쓰기 · {{ group.title }}{% endblock %}
+{% block content %}
+<div class="form-screen">
+  <a href="/group/{{ group.id }}/board" class="back-link">← 게시판으로</a>
+  <h1 class="form-title">리뷰 쓰기</h1>
+
+  {% if error %}<p class="form-error">{{ error }}</p>{% endif %}
+
+  <form method="post" action="/group/{{ group.id }}/write" class="form-card">
+    <div class="field">
+      <span class="field-label">카테고리</span>
+      <div class="category-choices">
+        {% for key, label in category_labels.items() %}
+        <label class="category-choice">
+          <input type="radio" name="category" value="{{ key }}" {% if form.category == key %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">별점</span>
+      <div class="star-picker" id="star-picker" data-value="{{ form.star_count }}">
+        {% for i in range(1, 6) %}
+        <span class="star-choice" data-value="{{ i }}">★</span>
+        {% endfor %}
+        <span class="star-hint">클릭해서 별을 채워주세요!</span>
+      </div>
+      <input type="hidden" name="star_count" id="star_count_input" value="{{ form.star_count }}">
+    </div>
+
+    <label class="field">
+      <span class="field-label">리뷰 제목 <span class="required-mark">필수</span></span>
+      <input type="text" name="title" placeholder="예: 인생 파스타집 발견" value="{{ form.title }}" required>
+    </label>
+
+    <label class="field">
+      <span class="field-label">리뷰 내용</span>
+      <textarea name="content" rows="5" placeholder="자유롭게 남겨주세요 (선택)">{{ form.content }}</textarea>
+    </label>
+
+    <div class="field">
+      <span class="field-label">위치 (선택)</span>
+      <span class="field-hint">지도를 클릭하면 그 자리에 마커가 찍혀요. 필수는 아니에요.</span>
+      <div id="location-map" class="location-map"></div>
+      <input type="text" name="place_name" id="place_name_input"
+             placeholder="장소 이름 (예: 홍대 파스타집)" value="{{ form.place_name }}">
+      <button type="button" id="clear-location-btn" class="link-btn" style="display:none;">위치 지우기</button>
+    </div>
+    <input type="hidden" name="latitude" id="latitude_input" value="{{ form.latitude }}">
+    <input type="hidden" name="longitude" id="longitude_input" value="{{ form.longitude }}">
+
+    <button type="submit" class="btn btn-primary btn-block">리뷰 올리기</button>
+  </form>
+</div>
+
+<script>
+  // 별점은 카카오맵과 무관하게 항상 먼저 동작하도록 분리
+  const picker = document.getElementById('star-picker');
+  const input = document.getElementById('star_count_input');
+  const choices = picker.querySelectorAll('.star-choice');
+
+  function renderStars(value) {
+    choices.forEach(function (el) {
+      el.classList.toggle('is-filled', Number(el.dataset.value) <= value);
+    });
+  }
+
+  choices.forEach(function (el) {
+    el.addEventListener('click', function () {
+      const value = Number(el.dataset.value);
+      const current = Number(input.value);
+      const next = current === value ? 0 : value;
+      input.value = next;
+      renderStars(next);
+    });
+  });
+
+  renderStars(Number(input.value));
+</script>
+
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey={{ kakao_js_key }}"></script>
+<script>
+  // 카카오맵 로딩이 실패해도 위 별점 코드에는 영향 없도록 별도 스크립트로 분리
+  if (typeof kakao === 'undefined' || !kakao.maps) {
+    console.warn('카카오맵 SDK 로드 실패: 키 또는 도메인 등록을 확인하세요.');
+    document.getElementById('location-map').innerText = '지도를 불러오지 못했어요. (키/도메인 설정 확인 필요)';
+  } else {
+    kakao.maps.load(function () {
+      const defaultCenter = new kakao.maps.LatLng(37.5665, 126.9780); // 서울시청 근처 기본값
+      const mapContainer = document.getElementById('location-map');
+      const map = new kakao.maps.Map(mapContainer, { center: defaultCenter, level: 5 });
+
+      const latInput = document.getElementById('latitude_input');
+      const lngInput = document.getElementById('longitude_input');
+      const clearBtn = document.getElementById('clear-location-btn');
+
+      let marker = null;
+
+      function placeMarker(latlng) {
+        if (marker) marker.setMap(null);
+        marker = new kakao.maps.Marker({ position: latlng, map: map });
+        latInput.value = latlng.getLat();
+        lngInput.value = latlng.getLng();
+        clearBtn.style.display = 'inline';
+      }
+
+      const existingLat = parseFloat(latInput.value);
+      const existingLng = parseFloat(lngInput.value);
+      if (!isNaN(existingLat) && !isNaN(existingLng)) {
+        const restored = new kakao.maps.LatLng(existingLat, existingLng);
+        map.setCenter(restored);
+        placeMarker(restored);
+      }
+
+      kakao.maps.event.addListener(map, 'click', function (mouseEvent) {
+        placeMarker(mouseEvent.latLng);
+      });
+
+      clearBtn.addEventListener('click', function () {
+        if (marker) marker.setMap(null);
+        marker = null;
+        latInput.value = '';
+        lngInput.value = '';
+        clearBtn.style.display = 'none';
+      });
+    });
+  }
+</script>
+{% endblock %}

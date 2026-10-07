@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ review.title }} · {{ group.title }}{% endblock %}
+{% block content %}
+<div class="detail-screen">
+  <a href="/group/{{ group.id }}/board" class="back-link">← 게시판으로</a>
+
+  <div class="review-card review-card-detail">
+    <div class="review-card-top">
+      <span class="pill pill-{{ review.category }}">{{ category_labels[review.category] }}</span>
+      <span class="stars">{{ '★' * review.star_count }}{{ '☆' * (5 - review.star_count) }}</span>
+    </div>
+    <h1 class="review-title">{{ review.title }}</h1>
+    {% if review.place_name %}<p class="review-place">📍 {{ review.place_name }}</p>{% endif %}
+    {% if review.content %}<p class="review-content">{{ review.content }}</p>{% endif %}
+    <p class="review-meta">{{ review.members.nickname }} · {{ review.created_at[:16].replace('T', ' ') }}</p>
+
+    <div class="review-actions">
+      <form method="post" action="/review/{{ review.id }}/like" class="like-form">
+        <input type="hidden" name="next" value="detail">
+        <button type="submit" class="heart-btn {% if liked_by_me %}is-liked{% endif %}">
+          {{ '♥' if liked_by_me else '♡' }} {{ like_count }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <h2 class="comment-heading">댓글 {{ comments|length }}개</h2>
+
+  <form method="post" action="/review/{{ review.id }}/comment" class="comment-form">
+    <input type="text" name="content" placeholder="댓글을 남겨보세요" required maxlength="500">
+    <button type="submit" class="btn btn-primary">등록</button>
+  </form>
+
+  {% if comments|length == 0 %}
+  <div class="empty-state">
+    <p>아직 댓글이 없어요. 첫 댓글을 남겨보세요.</p>
+  </div>
+  {% else %}
+  <ul class="comment-list">
+    {% for c in comments %}
+    <li class="comment-item">
+      <p class="comment-content">{{ c.content }}</p>
+      <p class="comment-meta">{{ c.members.nickname }} · {{ c.created_at[:16].replace('T', ' ') }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}게시판 · {{ group.title }}{% endblock %}
+{% block content %}
+<div class="board-screen">
+  <header class="board-header">
+    <div>
+      <h1 class="board-title">{{ group.title }}</h1>
+      <p class="board-sub">{{ member.nickname }}님 · 그룹 코드 <strong>{{ group.code }}</strong></p>
+    </div>
+  </header>
+
+  {% if reviews|length == 0 %}
+  <div class="empty-state">
+    <p>아직 올라온 리뷰가 없어요.</p>
+    <p>첫 리뷰를 남겨서 게시판을 채워보세요.</p>
+  </div>
+  {% else %}
+  <ul class="review-list">
+    {% for r in reviews %}
+    <li class="review-card">
+      <div class="review-card-top">
+        <span class="pill pill-{{ r.category }}">{{ category_labels[r.category] }}</span>
+        <span class="stars">{{ '★' * r.star_count }}{{ '☆' * (5 - r.star_count) }}</span>
+      </div>
+      <a href="/review/{{ r.id }}" class="review-title-link">
+        <h2 class="review-title">{{ r.title }}</h2>
+      </a>
+      {% if r.content %}<p class="review-content">{{ r.content }}</p>{% endif %}
+      <p class="review-meta">{{ r.members.nickname }} · {{ r.created_at[:16].replace('T', ' ') }}</p>
+
+      <div class="review-actions">
+        <form method="post" action="/review/{{ r.id }}/like" class="like-form">
+          <input type="hidden" name="next" value="board">
+          <button type="submit" class="heart-btn {% if r.liked_by_me %}is-liked{% endif %}">
+            {{ '♥' if r.liked_by_me else '♡' }} {{ r.like_count }}
+          </button>
+        </form>
+        <a href="/review/{{ r.id }}" class="comment-count-link">💬 댓글 {{ r.comment_count }}개</a>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endblock %}
