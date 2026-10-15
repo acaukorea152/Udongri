@@ -4,11 +4,13 @@
 <div class="hero-screen">
   <div class="hero-mark">우동리</div>
   <p class="hero-sub">우리 동아리 리뷰</p>
-  <p class="hero-desc">동아리 사람들과 함께 다녀온 곳,<br>같이 본 영화의 기록을 남기고 나눠보세요.</p>
+  <p class="hero-desc">모임도 잡고, 다녀온 곳과 본 영화의<br>기록도 함께 나눠보세요.</p>
 
-  <div class="hero-actions">
-    <a href="/group/create" class="btn btn-primary">그룹 만들기</a>
-    <a href="/group/join" class="btn btn-secondary">그룹 참가하기</a>
-  </div>
+  {% if error %}<p class="form-error">{{ error }}</p>{% endif %}
+
+  <form method="post" action="/enter" class="hero-form">
+    <input type="text" name="nickname" maxlength="12" placeholder="사용할 닉네임 (12자 이내)" required>
+    <button type="submit" class="btn btn-primary btn-block">입장하기</button>
+  </form>
 </div>
 {% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}{{ meetup.title }} · {{ group.title }}{% endblock %}
+{% block content %}
+<div class="detail-screen">
+  <a href="{{ back_url }}" class="back-link">← 캘린더로</a>
+
+  <div class="review-card review-card-detail">
+    <h1 class="review-title">{{ meetup.title }}</h1>
+    <p class="meetup-schedule">
+      📅 {{ meetup.event_date[5:7] }}/{{ meetup.event_date[8:10] }} · ⏰ {{ meetup.event_time[:5] }}
+    </p>
+    <p class="review-meta">만든 사람: {{ meetup.members.nickname }}</p>
+
+    <div class="review-actions">
+      <span class="participant-badge {% if meetup.is_full %}is-full{% endif %}">
+        👥 현재 {{ meetup.current_people }}명 / 모집 {{ meetup.max_people }}명
+      </span>
+
+      {% if meetup.is_mine %}
+      <div class="count-adjust">
+        <form method="post" action="/meetup/{{ meetup.id }}/adjust" class="inline-form">
+          <input type="hidden" name="delta" value="-1">
+          <input type="hidden" name="next" value="/meetup/{{ meetup.id }}">
+          <button type="submit" class="step-btn" aria-label="현재 인원 줄이기" {% if meetup.current_people <= 0 %}disabled{% endif %}>−</button>
+        </form>
+        <form method="post" action="/meetup/{{ meetup.id }}/adjust" class="inline-form">
+          <input type="hidden" name="delta" value="1">
+          <input type="hidden" name="next" value="/meetup/{{ meetup.id }}">
+          <button type="submit" class="step-btn" aria-label="현재 인원 늘리기" {% if meetup.is_full %}disabled{% endif %}>+</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <h2 class="comment-heading">대화 {{ comments|length }}개</h2>
+
+  <form method="post" action="/meetup/{{ meetup.id }}/comment" class="comment-form">
+    <input type="text" name="content" placeholder="자유롭게 이야기해보세요" required maxlength="500">
+    <button type="submit" class="btn btn-primary">등록</button>
+  </form>
+
+  {% if comments|length == 0 %}
+  <div class="empty-state">
+    <p>아직 대화가 없어요. 첫 메시지를 남겨보세요.</p>
+  </div>
+  {% else %}
+  <ul class="comment-list">
+    {% for c in comments %}
+    <li class="comment-item">
+      <p class="comment-content">{{ c.content }}</p>
+      <p class="comment-meta">{{ c.members.nickname }} · {{ c.created_at[:16].replace('T', ' ') }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const realtimeClient = window.supabase.createClient(
+    "{{ supabase_url }}",
+    "{{ supabase_anon_key }}"
+  );
+
+  function reloadOnChange() {
+    location.reload();
+  }
+
+  realtimeClient
+    .channel('meetup-{{ meetup.id }}')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'meetup_comments', filter: 'meetup_id=eq.{{ meetup.id }}' },
+      reloadOnChange
+    )
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'meetups', filter: 'id=eq.{{ meetup.id }}' },
+      reloadOnChange
+    )
+    .subscribe();
+</script>
+{% endblock %}

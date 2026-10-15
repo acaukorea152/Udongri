@@ -23,27 +23,5 @@
       </form>
     </div>
   </div>
-
-  <h2 class="comment-heading">댓글 {{ comments|length }}개</h2>
-
-  <form method="post" action="/review/{{ review.id }}/comment" class="comment-form">
-    <input type="text" name="content" placeholder="댓글을 남겨보세요" required maxlength="500">
-    <button type="submit" class="btn btn-primary">등록</button>
-  </form>
-
-  {% if comments|length == 0 %}
-  <div class="empty-state">
-    <p>아직 댓글이 없어요. 첫 댓글을 남겨보세요.</p>
-  </div>
-  {% else %}
-  <ul class="comment-list">
-    {% for c in comments %}
-    <li class="comment-item">
-      <p class="comment-content">{{ c.content }}</p>
-      <p class="comment-meta">{{ c.members.nickname }} · {{ c.created_at[:16].replace('T', ' ') }}</p>
-    </li>
-    {% endfor %}
-  </ul>
-  {% endif %}
 </div>
 {% endblock %}

@@ -15,6 +15,10 @@
 
   {% if group %}
   <nav class="tabbar">
+    <a href="/group/{{ group.id }}/calendar" class="tabbar-item {% if active_tab == 'calendar' %}is-active{% endif %}">
+      <span class="tabbar-icon">📅</span>
+      <span>캘린더</span>
+    </a>
     <a href="/group/{{ group.id }}/board" class="tabbar-item {% if active_tab == 'board' %}is-active{% endif %}">
       <span class="tabbar-icon">📋</span>
       <span>게시판</span>

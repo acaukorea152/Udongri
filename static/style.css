@@ -63,13 +63,17 @@ a { color: inherit; }
   font-size: 15px;
   line-height: 1.7;
   color: var(--ink);
-  margin-bottom: 48px;
+  margin-bottom: 36px;
 }
 
-.hero-actions {
+.hero-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.hero-form input[type="text"] {
+  text-align: center;
 }
 
 /* ---------- 버튼 ---------- */
@@ -84,9 +88,16 @@ a { color: inherit; }
   text-decoration: none;
   border: 1px solid transparent;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .btn-block { display: block; width: 100%; }
+
+.btn-small {
+  padding: 8px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+}
 
 .btn-primary {
   background: var(--teal);
@@ -160,13 +171,7 @@ a { color: inherit; }
   color: var(--ink-soft);
 }
 
-.field-note {
-  font-size: 12px;
-  color: var(--ink-soft);
-  margin: -6px 0 0;
-}
-
-input[type="text"], select, textarea {
+input[type="text"], input[type="date"], input[type="time"], input[type="number"], select, textarea {
   font-family: inherit;
   font-size: 15px;
   padding: 11px 13px;
@@ -176,7 +181,7 @@ input[type="text"], select, textarea {
   color: var(--ink);
 }
 
-input[type="text"]:focus, select:focus, textarea:focus {
+input:focus, select:focus, textarea:focus {
   outline: 2px solid var(--teal);
   outline-offset: 1px;
 }
@@ -226,9 +231,7 @@ textarea { resize: vertical; font-family: inherit; }
   user-select: none;
 }
 
-.star-choice.is-filled {
-  color: var(--gold);
-}
+.star-choice.is-filled { color: var(--gold); }
 
 .star-hint {
   font-size: 12px;
@@ -236,15 +239,17 @@ textarea { resize: vertical; font-family: inherit; }
   margin-left: 8px;
 }
 
-/* ---------- 게시판 ---------- */
+/* ---------- 게시판 / 캘린더 공통 ---------- */
 
 .board-header {
   padding: 24px 0 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
-.board-title {
-  font-size: 22px;
-}
+.board-title { font-size: 22px; }
 
 .board-sub {
   margin: 6px 0 0;
@@ -301,9 +306,13 @@ textarea { resize: vertical; font-family: inherit; }
   margin: 4px 0 6px;
 }
 
+.review-title-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 .review-content {
   font-size: 14px;
-  color: var(--ink);
   line-height: 1.6;
   margin: 0 0 10px;
 }
@@ -314,91 +323,18 @@ textarea { resize: vertical; font-family: inherit; }
   margin: 0;
 }
 
-/* ---------- 위치 선택 (리뷰 작성 화면 내 소형 지도) ---------- */
-
-.location-map {
-  width: 100%;
-  height: 220px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  overflow: hidden;
-}
-
-.link-btn {
-  align-self: flex-start;
-  background: none;
-  border: none;
-  color: var(--teal);
-  font-size: 12px;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-  font-family: inherit;
-}
-
-/* ---------- 지도 탭 (전체 화면 지도) ---------- */
-
-.map-screen {
-  padding-top: 24px;
-}
-
-.group-map {
-  width: 100%;
-  height: calc(100vh - 220px);
-  min-height: 360px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  overflow: hidden;
-}
-
-.map-overlay-card {
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 12px 14px;
-  min-width: 180px;
-  box-shadow: 0 4px 10px rgba(43, 43, 37, 0.12);
-}
-
-.map-overlay-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.map-overlay-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 2px;
-}
-
-.map-overlay-meta {
-  font-size: 12px;
+.review-place {
+  font-size: 13px;
   color: var(--ink-soft);
-  margin-bottom: 8px;
-}
-
-.map-overlay-link {
-  display: inline-block;
-  font-size: 12px;
-  color: #fff;
-  background: var(--teal);
-  padding: 6px 10px;
-  border-radius: 6px;
-  text-decoration: none;
-}
-
-.review-title-link {
-  text-decoration: none;
-  color: inherit;
+  margin: 0 0 8px;
 }
 
 .review-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 .like-form { margin: 0; }
@@ -420,25 +356,44 @@ textarea { resize: vertical; font-family: inherit; }
   background: #FBE9E0;
 }
 
+.heart-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .comment-count-link {
   font-size: 13px;
   color: var(--ink-soft);
   text-decoration: none;
 }
 
-/* ---------- 리뷰 상세 / 댓글 ---------- */
+/* ---------- 캘린더(모임) 카드 ---------- */
+
+.meetup-schedule {
+  font-size: 14px;
+  margin: 0 0 6px;
+  color: var(--teal-dark);
+  font-weight: 600;
+}
+
+.participant-badge {
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #E3EDE8;
+  color: var(--teal-dark);
+}
+
+.participant-badge.is-full {
+  background: #F1DDD6;
+  color: var(--error);
+}
+
+/* ---------- 상세 / 대화 ---------- */
 
 .detail-screen { padding-top: 24px; }
 
-.review-card-detail {
-  margin-bottom: 24px;
-}
-
-.review-place {
-  font-size: 13px;
-  color: var(--ink-soft);
-  margin: 0 0 8px;
-}
+.review-card-detail { margin-bottom: 24px; }
 
 .comment-heading {
   font-size: 15px;
@@ -453,11 +408,8 @@ textarea { resize: vertical; font-family: inherit; }
 
 .comment-form input {
   flex: 1;
-  font-family: inherit;
   font-size: 14px;
   padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
 }
 
 .comment-form .btn {
@@ -493,6 +445,236 @@ textarea { resize: vertical; font-family: inherit; }
   margin: 0;
 }
 
+/* ---------- 위치 선택 / 지도 ---------- */
+
+.location-map {
+  width: 100%;
+  height: 220px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.link-btn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--teal);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.map-screen { padding-top: 0; }
+
+.group-map {
+  width: 100%;
+  height: calc(100vh - 300px);
+  height: calc(100dvh - 300px);
+  min-height: 320px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.map-overlay-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-width: 180px;
+  box-shadow: 0 4px 10px rgba(43, 43, 37, 0.12);
+}
+
+.map-overlay-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.map-overlay-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.map-overlay-meta {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* ---------- 달력 ---------- */
+
+.cal-wrap {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 6px 8px;
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 10px;
+}
+
+.cal-nav-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.cal-nav-btn:active { background: var(--bg); }
+
+.cal-nav-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cal-month {
+  font-family: 'Gowun Batang', serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--teal-dark);
+}
+
+.cal-today-link {
+  font-size: 12px;
+  color: var(--teal);
+  text-decoration: none;
+  border: 1px solid var(--teal);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.cal-weekday {
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-soft);
+  padding: 6px 0 8px;
+}
+
+.cal-weekday.sun { color: var(--error); }
+.cal-weekday.sat { color: var(--movie); }
+
+.cal-cell {
+  min-height: 70px;
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  padding: 4px 2px 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.cal-cell.is-other { opacity: 0.38; }
+
+.cal-cell.is-selected { background: #E3EDE8; }
+
+.cal-day {
+  align-self: center;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 12px;
+}
+
+.cal-cell.is-today .cal-day {
+  background: var(--gold);
+  color: #fff;
+  font-weight: 700;
+}
+
+.cal-chip {
+  display: block;
+  font-size: 10px;
+  line-height: 1.35;
+  background: var(--teal);
+  color: #fff;
+  border-radius: 4px;
+  padding: 1px 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal-chip.is-full { background: var(--ink-soft); }
+
+.cal-more {
+  font-size: 10px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.day-heading {
+  font-size: 17px;
+  margin: 22px 0 10px;
+}
+
+.empty-state-small { padding: 24px 20px; }
+
+.meetup-title {
+  font-family: 'Gowun Batang', serif;
+  font-size: 17px;
+  margin: 0 0 6px;
+}
+
+/* ---------- 현재 인원 조절 (작성자 전용) ---------- */
+
+.count-adjust {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inline-form { margin: 0; display: inline; }
+
+.step-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.step-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.time-select-row {
+  display: flex;
+  gap: 8px;
+}
+
+.time-select-row select { flex: 1; }
+
 /* ---------- 하단 탭바 ---------- */
 
 .tabbar {
@@ -525,9 +707,4 @@ textarea { resize: vertical; font-family: inherit; }
 .tabbar-item.is-active {
   color: var(--teal-dark);
   font-weight: 600;
-}
-
-.tabbar-item.is-disabled {
-  opacity: 0.4;
-  pointer-events: none;
 }

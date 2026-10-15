@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}캘린더 · {{ group.title }}{% endblock %}
+{% block content %}
+<div class="board-screen">
+  <header class="board-header">
+    <div>
+      <h1 class="board-title">{{ group.title }}</h1>
+      <p class="board-sub">{{ member.nickname }}님 · 모임 캘린더</p>
+    </div>
+    <a href="/group/{{ group.id }}/calendar/new?date={{ selected_iso }}" class="btn btn-primary btn-small">+ 모임 만들기</a>
+  </header>
+
+  <section class="cal-wrap">
+    <div class="cal-nav">
+      <a href="/group/{{ group.id }}/calendar?month={{ prev_month }}" class="cal-nav-btn" aria-label="이전 달">‹</a>
+      <div class="cal-nav-center">
+        <span class="cal-month">{{ year }}년 {{ month_number }}월</span>
+        <a href="/group/{{ group.id }}/calendar" class="cal-today-link">오늘</a>
+      </div>
+      <a href="/group/{{ group.id }}/calendar?month={{ next_month }}" class="cal-nav-btn" aria-label="다음 달">›</a>
+    </div>
+
+    <div class="cal-grid">
+      <div class="cal-weekday sun">일</div>
+      <div class="cal-weekday">월</div>
+      <div class="cal-weekday">화</div>
+      <div class="cal-weekday">수</div>
+      <div class="cal-weekday">목</div>
+      <div class="cal-weekday">금</div>
+      <div class="cal-weekday sat">토</div>
+
+      {% for week in weeks %}
+        {% for d in week %}
+        <a href="/group/{{ group.id }}/calendar?month={{ d.month_key }}&date={{ d.iso }}"
+           class="cal-cell {% if not d.in_month %}is-other{% endif %} {% if d.is_today %}is-today{% endif %} {% if d.is_selected %}is-selected{% endif %}">
+          <span class="cal-day">{{ d.day }}</span>
+          {% for m in d.meetups[:2] %}
+          <span class="cal-chip {% if m.is_full %}is-full{% endif %}">{{ m.title }}</span>
+          {% endfor %}
+          {% if d.meetups|length > 2 %}
+          <span class="cal-more">+{{ d.meetups|length - 2 }}</span>
+          {% endif %}
+        </a>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <h2 class="day-heading">{{ selected_label }}</h2>
+
+  {% if selected_meetups|length == 0 %}
+  <div class="empty-state empty-state-small">
+    <p>이 날은 모집 중인 모임이 없어요.</p>
+  </div>
+  {% else %}
+  <ul class="review-list">
+    {% for m in selected_meetups %}
+    <li class="review-card">
+      <a href="/meetup/{{ m.id }}" class="review-title-link">
+        <h3 class="meetup-title">{{ m.title }}</h3>
+      </a>
+      <p class="meetup-schedule">⏰ {{ m.event_time[:5] }}</p>
+      <p class="review-meta">만든 사람: {{ m.members.nickname }}</p>
+
+      <div class="review-actions">
+        <span class="participant-badge {% if m.is_full %}is-full{% endif %}">
+          👥 현재 {{ m.current_people }}명 / 모집 {{ m.max_people }}명
+        </span>
+
+        {% if m.is_mine %}
+        <div class="count-adjust">
+          <form method="post" action="/meetup/{{ m.id }}/adjust" class="inline-form">
+            <input type="hidden" name="delta" value="-1">
+            <input type="hidden" name="next" value="{{ calendar_url }}">
+            <button type="submit" class="step-btn" aria-label="현재 인원 줄이기" {% if m.current_people <= 0 %}disabled{% endif %}>−</button>
+          </form>
+          <form method="post" action="/meetup/{{ m.id }}/adjust" class="inline-form">
+            <input type="hidden" name="delta" value="1">
+            <input type="hidden" name="next" value="{{ calendar_url }}">
+            <button type="submit" class="step-btn" aria-label="현재 인원 늘리기" {% if m.is_full %}disabled{% endif %}>+</button>
+          </form>
+        </div>
+        {% endif %}
+
+        <a href="/meetup/{{ m.id }}" class="comment-count-link">💬 대화</a>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const realtimeClient = window.supabase.createClient(
+    "{{ supabase_url }}",
+    "{{ supabase_anon_key }}"
+  );
+
+  realtimeClient
+    .channel('calendar-{{ group.id }}')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'meetups', filter: 'group_id=eq.{{ group.id }}' },
+      function () { location.reload(); }
+    )
+    .subscribe();
+</script>
+{% endblock %}

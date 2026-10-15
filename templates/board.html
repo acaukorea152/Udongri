@@ -5,7 +5,7 @@
   <header class="board-header">
     <div>
       <h1 class="board-title">{{ group.title }}</h1>
-      <p class="board-sub">{{ member.nickname }}님 · 그룹 코드 <strong>{{ group.code }}</strong></p>
+      <p class="board-sub">{{ member.nickname }}님 · 리뷰 게시판</p>
     </div>
   </header>
 
@@ -22,9 +22,7 @@
         <span class="pill pill-{{ r.category }}">{{ category_labels[r.category] }}</span>
         <span class="stars">{{ '★' * r.star_count }}{{ '☆' * (5 - r.star_count) }}</span>
       </div>
-      <a href="/review/{{ r.id }}" class="review-title-link">
-        <h2 class="review-title">{{ r.title }}</h2>
-      </a>
+      <h2 class="review-title">{{ r.title }}</h2>
       {% if r.content %}<p class="review-content">{{ r.content }}</p>{% endif %}
       <p class="review-meta">{{ r.members.nickname }} · {{ r.created_at[:16].replace('T', ' ') }}</p>
 
@@ -35,11 +33,27 @@
             {{ '♥' if r.liked_by_me else '♡' }} {{ r.like_count }}
           </button>
         </form>
-        <a href="/review/{{ r.id }}" class="comment-count-link">💬 댓글 {{ r.comment_count }}개</a>
       </div>
     </li>
     {% endfor %}
   </ul>
   {% endif %}
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const realtimeClient = window.supabase.createClient(
+    "{{ supabase_url }}",
+    "{{ supabase_anon_key }}"
+  );
+
+  realtimeClient
+    .channel('board-{{ group.id }}')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'reviews', filter: 'group_id=eq.{{ group.id }}' },
+      function () { location.reload(); }
+    )
+    .subscribe();
+</script>
 {% endblock %}
