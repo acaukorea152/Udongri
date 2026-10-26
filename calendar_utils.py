@@ -81,3 +81,12 @@ def parse_time_10min(hour_str, minute_str):
     if not (0 <= hour <= 23) or minute not in (0, 10, 20, 30, 40, 50):
         return None
     return f"{hour:02d}:{minute:02d}"
+
+
+def split_time(time_str):
+    """'09:30:00' 같은 저장값을 ('9', '30')으로 나눈다 (선택칸의 값과 맞추기 위해 앞의 0 제거)."""
+    try:
+        hour, minute = time_str.split(":")[:2]
+        return str(int(hour)), str(int(minute))
+    except (ValueError, AttributeError):
+        return "", ""

@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block title %}모임 만들기 · {{ group.title }}{% endblock %}
+{% set heading = page_heading|default('모임 만들기') %}
+{% block title %}{{ heading }} · {{ group.title }}{% endblock %}
 {% block content %}
 <div class="form-screen">
-  <a href="/group/{{ group.id }}/calendar" class="back-link">← 캘린더로</a>
-  <h1 class="form-title">모임 만들기</h1>
+  <a href="{{ back_url|default('/group/' ~ group.id ~ '/calendar') }}" class="back-link">{{ back_label|default('← 캘린더로') }}</a>
+  <h1 class="form-title">{{ heading }}</h1>
 
   {% if error %}<p class="form-error">{{ error }}</p>{% endif %}
 
-  <form method="post" action="/group/{{ group.id }}/calendar/new" class="form-card">
+  <form method="post" action="{{ form_action|default('/group/' ~ group.id ~ '/calendar/new') }}" class="form-card">
     <label class="field">
       <span class="field-label">모임 제목 <span class="required-mark">필수</span></span>
       <input type="text" name="title" maxlength="30" placeholder="예: 머더미스터리 할 사람" value="{{ form.title }}" required>
@@ -39,10 +40,14 @@
     <label class="field">
       <span class="field-label">모집 인원 (본인 포함)</span>
       <input type="number" name="max_people" min="1" max="100" value="{{ form.max_people }}" required>
+      {% if is_edit %}
+      <span class="field-hint">현재 모인 인원보다 적게 줄일 수는 없어요.</span>
+      {% else %}
       <span class="field-hint">현재 인원은 1명(본인)으로 시작해요. 만든 뒤 캘린더에서 + / − 로 바꿀 수 있어요.</span>
+      {% endif %}
     </label>
 
-    <button type="submit" class="btn btn-primary btn-block">모임 올리기</button>
+    <button type="submit" class="btn btn-primary btn-block">{{ submit_label|default('모임 올리기') }}</button>
   </form>
 </div>
 {% endblock %}

@@ -163,6 +163,22 @@ def update_current_people(meetup_id: str, value: int):
     supabase.table("meetups").update({"current_people": value}).eq("id", meetup_id).execute()
 
 
+def update_meetup(meetup_id: str, title: str, event_date: str, event_time: str, max_people: int):
+    supabase.table("meetups").update(
+        {
+            "title": title,
+            "event_date": event_date,
+            "event_time": event_time,
+            "max_people": max_people,
+        }
+    ).eq("id", meetup_id).execute()
+
+
+def delete_meetup(meetup_id: str):
+    """모임을 지우면 그 모임의 대화(meetup_comments)도 함께 지워진다."""
+    supabase.table("meetups").delete().eq("id", meetup_id).execute()
+
+
 def get_meetup_comments(meetup_id: str):
     res = (
         supabase.table("meetup_comments")

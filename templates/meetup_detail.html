@@ -31,6 +31,16 @@
       </div>
       {% endif %}
     </div>
+
+      {% if meetup.is_mine %}
+      <div class="owner-actions">
+        <a href="/meetup/{{ meetup.id }}/edit" class="small-btn">수정</a>
+        <form method="post" action="/meetup/{{ meetup.id }}/delete" class="inline-form"
+              onsubmit="return confirm('이 모임을 삭제할까요?\n대화도 함께 사라지고 되돌릴 수 없어요.');">
+          <button type="submit" class="small-btn danger">삭제</button>
+        </form>
+      </div>
+      {% endif %}
   </div>
 
   <h2 class="comment-heading">대화 {{ comments|length }}개</h2>

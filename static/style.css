@@ -675,6 +675,36 @@ textarea { resize: vertical; font-family: inherit; }
 
 .time-select-row select { flex: 1; }
 
+/* ---------- 수정 / 삭제 (작성자 전용) ---------- */
+
+.owner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+
+.small-btn {
+  display: inline-block;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-soft);
+  text-decoration: none;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.small-btn.danger {
+  color: var(--error);
+  border-color: var(--error);
+}
+
 /* ---------- 하단 탭바 ---------- */
 
 .tabbar {

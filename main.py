@@ -27,6 +27,8 @@ from database import (
     get_meetup_by_id,
     create_meetup,
     update_current_people,
+    update_meetup,
+    delete_meetup,
     get_meetup_comments,
     add_meetup_comment,
 )
@@ -258,6 +260,126 @@ def adjust_meetup(
     if next.startswith("/group/") or next.startswith("/meetup/"):
         return RedirectResponse(url=next, status_code=303)
     return RedirectResponse(url=f"/group/{meetup['group_id']}/calendar", status_code=303)
+
+
+def _get_owned_meetup(request: Request, meetup_id: str):
+    """내가 만든 모임이면 (모임, 멤버)를, 아니면 (None, None)을 돌려준다."""
+    meetup = get_meetup_by_id(meetup_id)
+    member = current_member(request)
+    if not meetup or not member:
+        return None, None
+    if member["group_id"] != meetup["group_id"] or member["id"] != meetup["creator_member_id"]:
+        return None, None
+    return meetup, member
+
+
+def _edit_context(meetup: dict) -> dict:
+    """모임 만들기 화면(meetup_new.html)을 '수정' 용도로 쓸 때 바뀌는 문구와 주소."""
+    return {
+        "is_edit": True,
+        "form_action": f"/meetup/{meetup['id']}/edit",
+        "page_heading": "모임 수정",
+        "submit_label": "수정 완료",
+        "back_url": f"/meetup/{meetup['id']}",
+        "back_label": "← 돌아가기",
+    }
+
+
+@app.get("/meetup/{meetup_id}/edit", response_class=HTMLResponse)
+def edit_meetup_form(request: Request, meetup_id: str):
+    meetup, member = _get_owned_meetup(request, meetup_id)
+    if not meetup:
+        return RedirectResponse(url="/")
+
+    group = get_group_by_id(meetup["group_id"])
+    hour, minute = cu.split_time(meetup["event_time"])
+    return templates.TemplateResponse(
+        "meetup_new.html",
+        {
+            "request": request,
+            "group": group,
+            "active_tab": "calendar",
+            "error": None,
+            "form": {
+                "title": meetup["title"],
+                "event_date": meetup["event_date"],
+                "event_hour": hour,
+                "event_minute": minute,
+                "max_people": meetup["max_people"],
+            },
+            **_edit_context(meetup),
+        },
+    )
+
+
+@app.post("/meetup/{meetup_id}/edit", response_class=HTMLResponse)
+def edit_meetup_submit(
+    request: Request,
+    meetup_id: str,
+    title: str = Form(...),
+    event_date: str = Form(...),
+    event_hour: str = Form(""),
+    event_minute: str = Form(""),
+    max_people: int = Form(...),
+):
+    meetup, member = _get_owned_meetup(request, meetup_id)
+    if not meetup:
+        return RedirectResponse(url="/")
+
+    group = get_group_by_id(meetup["group_id"])
+    title = title.strip()
+    event_time = cu.parse_time_10min(event_hour, event_minute)
+    error = None
+
+    if not (1 <= len(title) <= 30):
+        error = "모임 제목은 1~30자로 입력해주세요."
+    elif not cu.parse_date(event_date):
+        error = "날짜를 선택해주세요."
+    elif not event_time:
+        error = "시간을 10분 단위로 선택해주세요."
+    elif not (1 <= max_people <= 100):
+        error = "모집 인원은 1~100 사이로 입력해주세요."
+    elif max_people < meetup["current_people"]:
+        error = f"모집 인원은 현재 인원({meetup['current_people']}명)보다 적게 줄일 수 없어요."
+
+    if error:
+        return templates.TemplateResponse(
+            "meetup_new.html",
+            {
+                "request": request,
+                "group": group,
+                "active_tab": "calendar",
+                "error": error,
+                "form": {
+                    "title": title,
+                    "event_date": event_date,
+                    "event_hour": event_hour,
+                    "event_minute": event_minute,
+                    "max_people": max_people,
+                },
+                **_edit_context(meetup),
+            },
+            status_code=400,
+        )
+
+    update_meetup(meetup_id, title, event_date, event_time, max_people)
+    return RedirectResponse(
+        url=f"/group/{meetup['group_id']}/calendar?month={event_date[:7]}&date={event_date}",
+        status_code=303,
+    )
+
+
+@app.post("/meetup/{meetup_id}/delete")
+def remove_meetup(request: Request, meetup_id: str):
+    meetup, member = _get_owned_meetup(request, meetup_id)
+    if not meetup:
+        return RedirectResponse(url="/")
+
+    delete_meetup(meetup_id)
+    return RedirectResponse(
+        url=f"/group/{meetup['group_id']}/calendar?month={meetup['event_date'][:7]}&date={meetup['event_date']}",
+        status_code=303,
+    )
 
 
 @app.get("/meetup/{meetup_id}", response_class=HTMLResponse)

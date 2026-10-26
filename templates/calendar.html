@@ -84,6 +84,16 @@
 
         <a href="/meetup/{{ m.id }}" class="comment-count-link">💬 대화</a>
       </div>
+
+      {% if m.is_mine %}
+      <div class="owner-actions">
+        <a href="/meetup/{{ m.id }}/edit" class="small-btn">수정</a>
+        <form method="post" action="/meetup/{{ m.id }}/delete" class="inline-form"
+              onsubmit="return confirm('이 모임을 삭제할까요?\n대화도 함께 사라지고 되돌릴 수 없어요.');">
+          <button type="submit" class="small-btn danger">삭제</button>
+        </form>
+      </div>
+      {% endif %}
     </li>
     {% endfor %}
   </ul>
