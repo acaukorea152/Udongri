@@ -1,6 +1,11 @@
 import os
 import random
 import string
+import logging
+import time
+from functools import wraps
+
+import httpx
 
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -11,6 +16,23 @@ SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+logger = logging.getLogger(__name__)
+
+
+def retry_transient_read(function):
+    """Retry read-only Supabase queries after a brief network transport failure."""
+    @wraps(function)
+    def wrapped(*args, **kwargs):
+        for attempt in range(3):
+            try:
+                return function(*args, **kwargs)
+            except httpx.TransportError:
+                if attempt == 2:
+                    raise
+                delay = 0.25 * (2 ** attempt)
+                logger.warning("Temporary Supabase read failure in %s; retrying", function.__name__)
+                time.sleep(delay)
+    return wrapped
 
 CATEGORY_LABELS = {
     "movie": "영화",
@@ -23,6 +45,7 @@ VALID_MAX_MEMBERS = (5, 10, 20, 50, 100)
 
 # ---------- 그룹 / 멤버 ----------
 
+@retry_transient_read
 def generate_group_code(length: int = 6) -> str:
     alphabet = string.ascii_uppercase + string.digits
     while True:
@@ -32,11 +55,13 @@ def generate_group_code(length: int = 6) -> str:
             return code
 
 
+@retry_transient_read
 def get_group_by_code(code: str):
     res = supabase.table("groups").select("*").eq("code", code.upper()).execute()
     return res.data[0] if res.data else None
 
 
+@retry_transient_read
 def get_group_by_id(group_id: str):
     res = supabase.table("groups").select("*").eq("id", group_id).execute()
     return res.data[0] if res.data else None
@@ -60,16 +85,19 @@ def get_or_create_default_group():
     return res.data[0]
 
 
+@retry_transient_read
 def count_members(group_id: str) -> int:
     res = supabase.table("members").select("id", count="exact").eq("group_id", group_id).execute()
     return res.count or 0
 
 
+@retry_transient_read
 def get_member_by_token(device_token: str):
     res = supabase.table("members").select("*").eq("device_token", device_token).execute()
     return res.data[0] if res.data else None
 
 
+@retry_transient_read
 def get_member_by_id(member_id: str):
     res = supabase.table("members").select("*").eq("id", member_id).execute()
     return res.data[0] if res.data else None
@@ -77,6 +105,7 @@ def get_member_by_id(member_id: str):
 
 # ---------- 리뷰 / 지도 / 좋아요 ----------
 
+@retry_transient_read
 def get_reviews_with_location(group_id: str):
     res = (
         supabase.table("reviews")
@@ -90,6 +119,7 @@ def get_reviews_with_location(group_id: str):
     return res.data
 
 
+@retry_transient_read
 def get_likes_for_reviews(review_ids: list):
     if not review_ids:
         return []
@@ -97,6 +127,7 @@ def get_likes_for_reviews(review_ids: list):
     return res.data
 
 
+@retry_transient_read
 def get_review_by_id(review_id: str):
     res = supabase.table("reviews").select("*, members(nickname)").eq("id", review_id).execute()
     return res.data[0] if res.data else None
@@ -120,6 +151,7 @@ def toggle_like(review_id: str, member_id: str) -> bool:
 
 # ---------- 캘린더 (모임 모집) ----------
 
+@retry_transient_read
 def get_meetups_in_range(group_id: str, start_date: str, end_date: str):
     """화면에 보이는 달력 범위(start~end) 안의 모임을 날짜/시간순으로 가져온다."""
     res = (
@@ -135,6 +167,7 @@ def get_meetups_in_range(group_id: str, start_date: str, end_date: str):
     return res.data
 
 
+@retry_transient_read
 def get_meetup_by_id(meetup_id: str):
     res = supabase.table("meetups").select("*, members(nickname)").eq("id", meetup_id).execute()
     return res.data[0] if res.data else None
@@ -179,6 +212,7 @@ def delete_meetup(meetup_id: str):
     supabase.table("meetups").delete().eq("id", meetup_id).execute()
 
 
+@retry_transient_read
 def get_meetup_comments(meetup_id: str):
     res = (
         supabase.table("meetup_comments")

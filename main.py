@@ -1,7 +1,9 @@
 import json
+import logging
 import os
 import uuid
 
+import httpx
 from fastapi import FastAPI, Request, Form, Query
 from fastapi.responses import RedirectResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -37,6 +39,7 @@ COOKIE_NAME = os.environ.get("SESSION_COOKIE_NAME", "udongri_token")
 KAKAO_JS_KEY = os.environ.get("KAKAO_JS_KEY", "")
 
 app = FastAPI(title="우동리")
+logger = logging.getLogger(__name__)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -47,6 +50,20 @@ def service_worker():
         "static/service-worker.js",
         media_type="application/javascript",
         headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-cache"},
+    )
+
+
+@app.exception_handler(httpx.TransportError)
+async def supabase_connection_error(request: Request, exc: httpx.TransportError):
+    logger.error("Supabase connection failed while handling %s %s", request.method, request.url.path)
+    return HTMLResponse(
+        """<!doctype html><html lang="ko"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f8f5ef"><title>잠시 연결이 불안정해요</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f8f5ef;color:#31402e;font:16px/1.6 sans-serif;text-align:center}.box{padding:2rem}button{border:0;border-radius:10px;padding:12px 18px;background:#6d8b68;color:white;font:inherit}</style>
+<main class="box"><h1>잠시 연결이 불안정해요</h1><p>데이터 서버에 연결하지 못했습니다.<br>잠시 후 다시 시도해주세요.</p><button onclick="location.reload()">다시 시도</button></main></html>""",
+        status_code=503,
+        headers={"Retry-After": "2"},
     )
 
 
