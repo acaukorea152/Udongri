@@ -1,0 +1,15 @@
+{
+  "id": "/",
+  "name": "우동리",
+  "short_name": "우동리",
+  "description": "우리 동아리 모임과 기록을 함께 관리해요.",
+  "lang": "ko-KR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8f5ef",
+  "theme_color": "#f8f5ef",
+  "icons": [
+    { "src": "/static/icons/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

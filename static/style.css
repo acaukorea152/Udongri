@@ -738,3 +738,29 @@ textarea { resize: vertical; font-family: inherit; }
   color: var(--teal-dark);
   font-weight: 600;
 }
+/* PWA install banner */
+.install-prompt {
+  position: fixed;
+  z-index: 1000;
+  left: 16px;
+  right: 16px;
+  bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px 14px 16px;
+  border: 1px solid rgba(49, 64, 46, .12);
+  border-radius: 16px;
+  background: #fffdf8;
+  color: #31402e;
+  box-shadow: 0 8px 28px rgba(32, 42, 30, .16);
+}
+.install-prompt[hidden], .install-prompt button[hidden] { display: none; }
+.install-prompt > div { flex: 1; min-width: 0; }
+.install-prompt strong { display: block; font-size: .95rem; }
+.install-prompt p { margin: 3px 0 0; font-size: .82rem; line-height: 1.4; }
+.install-prompt .btn { flex: 0 0 auto; min-height: 40px; padding: 8px 14px; }
+.install-dismiss { flex: 0 0 auto; border: 0; padding: 4px 7px; background: transparent; color: inherit; font-size: 1.4rem; line-height: 1; }
+@media (min-width: 700px) {
+  .install-prompt { left: auto; right: 24px; bottom: 24px; width: min(430px, calc(100vw - 48px)); }
+}

@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#f8f5ef">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="우동리">
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="icon" href="/static/icons/app-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/static/icons/app-icon.svg">
   <title>{% block title %}우동리{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
@@ -12,6 +19,12 @@
   <div class="app-shell">
     {% block content %}{% endblock %}
   </div>
+
+  <aside id="install-prompt" class="install-prompt" hidden aria-live="polite">
+    <div><strong>우동리를 앱처럼 사용해보세요</strong><p id="install-help">홈 화면에 추가하면 더 편하게 열 수 있어요.</p></div>
+    <button id="install-button" type="button" class="btn btn-primary" hidden>설치</button>
+    <button id="install-dismiss" type="button" class="install-dismiss" aria-label="닫기">×</button>
+  </aside>
 
   {% if group %}
   <nav class="tabbar">
@@ -33,5 +46,6 @@
     </a>
   </nav>
   {% endif %}
+  <script src="/static/pwa.js" defer></script>
 </body>
 </html>
